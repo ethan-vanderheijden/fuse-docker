@@ -1,0 +1,15 @@
+services:
+  fuse:
+    build: .
+    image: ubuntu-fuse
+    pull_policy: never
+    container_name: fuse
+    privileged: true
+    volumes:
+      - type: bind
+        source: .
+        target: /home/ubuntu/filesystem
+    init: true
+    stdin_open: true
+    tty: true
+    command: sleep infinity
