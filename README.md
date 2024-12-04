@@ -2,155 +2,55 @@
 
 In this lab you will install [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) - a filesystem driver framework that you will use for Project 2. We will also explore the starter code for the project.
 
-## Step 0: If Needed, Install QEMU & Set Up Our Image
+## Step 1: Installing Docker + Compose and Running the container
 
-### Installing QEMU
-
-Our image will require about 3.5G of free space.
-
-#### macOS
-Open a terminal. Note: `$` at the beginning of a line means the command should be entered at the command prompt in a terminal.
-
-1. If not installed, install [Homebrew](https://brew.sh/): 
-
-   ```
-   $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-
-2. Install [QEMU](https://www.qemu.org) through Homebrew:
-
-   ```
-   $ brew install qemu
-   ```
-
-3. Install the `wget` command:
-
-   ```
-   $ brew install wget
-   ```
-
-4. Create a directory to store the VM image and copy `systems-qemu.sh` from the [qemu-scripts](qemu-scripts) directory of this repository into that directory. 
-
+### Installing Docker + Compose
 
 #### Windows
 
-On Windows, we find the most straightforward approach is to use the [Windows Subsystem for Linux 2 (WSL2](https://learn.microsoft.com/en-us/windows/wsl/install). Opening a WSL2 terminal, you should be able to follow the instructions from [Step 1](#step-1-install-fuse) to install the FUSE development files. 
+Install Docker Desktop here: https://docs.docker.com/desktop/setup/install/windows-install/
 
-However, if, for some reason, you want or need to work through QEMU, you can install it on Windows as follows.
+#### Mac
 
-1. Download QEMU for Windows from the official website: https://www.qemu.org/download/#windows. On the page, select 32-bit or 64-bit, depending on your Windows architecture. _Ignore the MSYS2 section_. On the next page, select one of the `exe` files with "QEMU Installer for Windows" next to it.
+Install Docker Desktop here: https://docs.docker.com/desktop/setup/install/mac-install/
 
-2. Run the QEMU installer and go through the step of the installation process. Note the location where you have installed QEMU.
-
-3. Once QEMU is installed, add the QEMU path to the Environment Variables:
-
-   1.  Open **File Explorer**, go to the QEMU installation location, and
-       then copy the path.
-   2.  Right-click **This PC** / **Computer**, choose **Properties**, and
-       then click **Advanced system settings**.
-   3.  Under the **Advanced** tab, click **Environment Variables**.
-   4.  In the **User variables** box, double-click the **Path** variable,
-       click **New**, and then paste the QEMU path.
-   5.  Click the **OK** button to save changes, and then click the **OK**
-       button again to save and exit the **Environment Variables**
-
-
-4. Create a directory to store the VM image and copy `systems-qemu.bat` from the [qemu-scripts](qemu-scripts) directory of this repository into that directory. 
-
-5. Download the file `virtualbox.box` from https://app.vagrantup.com/khoury-cs3650/boxes/base-environment/versions/2021.09.12/providers/virtualbox.box\
-   Make sure to save it as `virtualbox.box`.
 
 #### Linux
 
-You might have an easier time using FUSE directly, so you can skip to [Step 1](#step-1-install-fuse). If you still wish to try the QEMU way, installing QEMU should easy using the package manager of any major distro. After installing QEMU, create a directory to store the VM image and copy `systems-qemu.sh` from the [qemu-scripts](qemu-scripts) directory of this repository into that directory. 
+The process depends on your distribution. We suggest installing Docker Engine through your distro's package manager (e.g. `apt`, `yum`), and then installing the Docker Compose Plugin. Alternatively, you can install Docker Desktop, which includes both components out of the box and comes with a UI.
 
-### Set Up The Guest OS
+Docker Engine: https://docs.docker.com/engine/install/
+<br>
+Docker Compose: https://docs.docker.com/compose/install/linux
 
-1. On the command line, enter the directory and run `systems-qemu.sh` (or `systems-qemu.bat` if you are on a Windows command line). 
-    ```
-    $ ./systems-qemu.sh
-    ```
-    The machine should boot up -- after downloading and setting up an image (this might take a while). You can either log in in the VM window (but Copy and Paste will most likely not work for you), or you can allow SSH access using the steps below (strongly recommended).
-    After a successful boot, you may delete the following files from the directory:
+OR
 
-    - `Vagrantfile`
-    - `box-disk001.vmdk`
-    - `box-disk002.vmdk`
-    - `box.ovf`
-    - `metadata.json`
-    - `virtualbox.box`
+Docker Desktop: https://docs.docker.com/desktop/setup/install/linux/
 
-2. Log into the VM using the credentials below.
+### Building/running the Docker container
 
-3. Open `/etc/ssh/sshd_config`. E.g.
-      
-   ```
-   $ sudo nano /etc/ssh/sshd_config
-   ```
+Run the command:
 
-4. Find the line starting `PasswordAuthentication` and make sure it ends with `yes` (as opposed to `no`) and does not have a leading `#`. You can use 'Ctrl-W' to search ("Where is"). Exit and save the file by pressing 'Ctrl-X', followed by 'y' (for "yes" to answer the prompt), followed by 'Enter' (to confirm the filename).
-    
-
-5. Re-start the ssh service:
-
-  ```
-  $ sudo service ssh restart
-  ```
-
-6. Alternately, add an SSH public key from your computer to the `authorized_keys` file.
-
-   Edit `~/.ssh/authorized_keys` on the VM and add your public key to the file. 
-   For example, assuming your public key on your laptop is: `~/.ssh/id_ed25519.pub`:
-   In a window on your laptop:
-   ```
-   cat `~/.ssh/id_ed25519.pub
-   ```
-   Copy the response.
-   
-   In the VM:
-   ```
-   $ nano ~/.ssh/authorized_keys
-   ```
-   Add a new line and paste the public key to the file.  
-   Exit and save the file. 
-
-7. Now you should be able to log in to your running VM using ssh from you macOS terminal as follows:
-
-   ```
-   $ ssh -p 2200 vagrant@localhost
-   ```
-   
-8. To shutdown the VM:
-   ```
-   $ sudo shutdown -h now
-   ```
-
-The credentials for the QEMU VM are:
-
-- username: `vagrant`
-- password: `cs3650f21-base!`
-
-
-### (Optional) Install and Set Up VS Code for Remote Development
-
-For comfortable development and testing on the VM, we recommend using VS Code with the [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) extension. See [Remote Development using SSH](https://code.visualstudio.com/docs/remote/ssh).
-
-
-## Step 1: Install FUSE
-
-For this assignment you will need to use your local Ubuntu VM (or another local
-modern Linux). You'll need to install the following packages:
-- `libfuse-dev`
-- `libbsd-dev`
-- `pkg-config`
-
-Running
+```sh
+docker compose up -d
 ```
-$ sudo apt-get install libfuse-dev libbsd-dev pkg-config
+
+It should start building the Docker container. This may take 5-10 minutes...
+
+### Connecting to the Docker container
+
+Before connecting, always ensure that the container is running via `docker compose up -d`. It should print out "[Started]".
+
+Run the command:
+```sh
+docker exec -it fuse bash
 ```
-should do the trick.
+That's it! Your terminal is now connected to the Docker container.
 
-
+When you are done working inside the container, you can kill the it with the following:
+```sh
+docker compose down
+```
 
 ### Provided Makefile and Tests
 
